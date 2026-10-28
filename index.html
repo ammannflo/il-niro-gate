@@ -1,11 +1,26 @@
 <!DOCTYPE html>
-<html><body>
-<h2 id="msg">Öffne das Tor …</h2>
+<html><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Il Niro – Garage</title>
+<style>body{font-family:system-ui,sans-serif;text-align:center;padding:3rem 1rem;font-size:1.2rem}</style>
+</head><body>
+<h2 id="msg"></h2>
 <script>
-const params = new URLSearchParams(window.location.search);
-const token = params.get("token");
-fetch(`https://yywh1ingvtoz5v6vv4kcixl8p9qddekl.ui.nabu.casa/api/webhook/gate_open?token=${token}`)
-  .then(() => document.getElementById("msg").textContent = "✅ Willkommen! Das Tor öffnet sich.")
-  .catch(() => document.getElementById("msg").textContent = "❌ Fehler, bitte Gastgeber kontaktieren.");
+const T = {
+  de: {load:"Öffne das Tor …", open:"✅ Willkommen! Das Tor öffnet sich.", not_yet:"⏳ Der Link ist noch nicht gültig. Gültig ab {from}.", ended:"Der Aufenthalt ist beendet (bis {to}).", invalid:"❌ Ungültiger Link. Bitte Gastgeber kontaktieren.", error:"❌ Fehler, bitte Gastgeber kontaktieren."},
+  en: {load:"Opening the gate …", open:"✅ Welcome! The gate is opening.", not_yet:"⏳ This link is not valid yet. Valid from {from}.", ended:"Your stay has ended (until {to}).", invalid:"❌ Invalid link. Please contact your host.", error:"❌ Error, please contact your host."},
+  fr: {load:"Ouverture du portail …", open:"✅ Bienvenue ! Le portail s’ouvre.", not_yet:"⏳ Ce lien n’est pas encore valable. Valable à partir du {from}.", ended:"Le séjour est terminé (jusqu’au {to}).", invalid:"❌ Lien invalide. Veuillez contacter votre hôte.", error:"❌ Erreur, veuillez contacter votre hôte."},
+  it: {load:"Apertura del cancello …", open:"✅ Benvenuti! Il cancello si sta aprendo.", not_yet:"⏳ Questo link non è ancora valido. Valido dal {from}.", ended:"Il soggiorno è terminato (fino al {to}).", invalid:"❌ Link non valido. Contattare l’host.", error:"❌ Errore, contattare l’host."}
+};
+const p = new URLSearchParams(location.search);
+const l = (p.get("lang") || navigator.language || "en").slice(0,2).toLowerCase();
+const t = T[l] || T.en;
+const msg = document.getElementById("msg");
+const fmt = d => d ? new Date(d).toLocaleDateString(T[l] ? l : "en") : "";
+msg.textContent = t.load;
+fetch("https://yywh1ingvtoz5v6vv4kcixl8p9qddekl.ui.nabu.casa/api/webhook/gate_access?token=" + encodeURIComponent(p.get("token") || ""))
+  .then(r => r.json())
+  .then(d => msg.textContent = (t[d.status] || t.error).replace("{from}", fmt(d.from)).replace("{to}", fmt(d.to)))
+  .catch(() => msg.textContent = t.error);
 </script>
 </body></html>
